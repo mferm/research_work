@@ -1,0 +1,125 @@
+---
+title: "PCA on Negative Attributes"
+author: "Michael Fermanian"
+date: "June 16, 2017"
+output: html_document
+
+notes: 
+
+Principal Components Analysis (PCA) is a method of reducing the dimensionality of data by finding the variables which account for most of the variation in the data. This is done by eigendecomposition (linear algebra). Below, I prepare the data for PCA, and then perform it to find which negative subjective characteristics (irresponsible, etc.) are most important for a profile photo's perception.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE}
+library(DataComputing)
+library(tidyr)
+```
+
+```{r}
+subjective3 <- read.csv("~/Documents/Research/data_collection/photo_coding/subjective3_results.csv")
+```
+
+Prepare data for PCA:
+
+```{r}
+neg_attrs <- select(subjective3, -mturk_url, -id, -hit_id, -turker_id, -turker_gender, -turker_age, -turker_race, -no_face)
+
+#make copies of ratings to prepare for loop
+neg_attrs$r1 <- neg_attrs$rating_w1
+neg_attrs$r2 <- neg_attrs$rating_w2
+neg_attrs$r3 <- neg_attrs$rating_w3
+neg_attrs$r4 <- neg_attrs$rating_w4
+neg_attrs$r5 <- neg_attrs$rating_w5
+neg_attrs$r6 <- neg_attrs$rating_w6
+neg_attrs$r7 <- neg_attrs$rating_w7
+
+#switch attributes, and their ratings with them
+for (i in 1:nrow(neg_attrs)){
+  for (j in 9:14){
+    if (neg_attrs[i,j] == "Careless"){
+      neg_attrs[i,j] <- neg_attrs$w1[i]
+      neg_attrs$w1[i] <- "Careless"
+      neg_attrs$rating_w1[i] <- neg_attrs[i,j-7]
+      neg_attrs[i,j-7] <- neg_attrs$r1[i]
+    }
+  }
+}
+
+for (i in 1:nrow(neg_attrs)){
+  for (j in 9:14){
+    if (neg_attrs[i,j] == "Irresponsible"){
+      neg_attrs[i,j] <- neg_attrs$w2[i]
+      neg_attrs$w2[i] <- "Irresponsible"
+      neg_attrs$rating_w2[i] <- neg_attrs[i,j-7]
+      neg_attrs[i,j-7] <- neg_attrs$r2[i]
+    }
+  }
+}
+
+for (i in 1:nrow(neg_attrs)){
+  for (j in 9:14){
+    if (neg_attrs[i,j] == "Lazy"){
+      neg_attrs[i,j] <- neg_attrs$w3[i]
+      neg_attrs$w3[i] <- "Lazy"
+      neg_attrs$rating_w3[i] <- neg_attrs[i,j-7]
+      neg_attrs[i,j-7] <- neg_attrs$r3[i]
+    }
+  }
+}
+
+for (i in 1:nrow(neg_attrs)){
+  for (j in 10:14){
+    if (neg_attrs[i,j] == "Threatening"){
+      neg_attrs[i,j] <- neg_attrs$w4[i]
+      neg_attrs$w4[i] <- "Threatening"
+      neg_attrs$rating_w4[i] <- neg_attrs[i,j-7]
+      neg_attrs[i,j-7] <- neg_attrs$r4[i]
+    }
+  }
+}
+
+for (i in 1:nrow(neg_attrs)){
+  for (j in 10:14){
+    if (neg_attrs[i,j] == "Has an Attitude"){
+      neg_attrs[i,j] <- neg_attrs$w5[i]
+      neg_attrs$w5[i] <- "Has an Attitude"
+      neg_attrs$rating_w5[i] <- neg_attrs[i,j-7]
+      neg_attrs[i,j-7] <- neg_attrs$r5[i]
+    }
+  }
+}
+
+for (i in 1:nrow(neg_attrs)){
+  for (j in 10:14){
+    if (neg_attrs[i,j] == "Disobedient"){
+      neg_attrs[i,j] <- neg_attrs$w6[i]
+      neg_attrs$w6[i] <- "Disobedient"
+      neg_attrs$rating_w6[i] <- neg_attrs[i,j-7]
+      neg_attrs[i,j-7] <- neg_attrs$r6[i]
+    }
+  }
+}
+
+pca_ready <- neg_attrs %>% select(rating_w1:rating_w7)
+names(pca_ready) <- c("Careless", "Irresponsible", "Lazy", "Threatening", "Has an Attitude", "Disobedient", "Hostile")
+
+#remove NA's
+for (i in 1:ncol(pca_ready)){
+  pca_ready <- pca_ready %>% filter(!is.na(pca_ready[i]))
+}
+
+```
+
+PCA:
+
+```{r}
+pr <- prcomp(pca_ready, scale. = TRUE)
+head(pr$x)
+pr
+#data.frame(pr$x) %>% ggplot(aes(x=PC1, y=PC2)) + geom_point(alpha=0.2) + geom_hline(yintercept=0, color="blue", alpha=0.5) + 
+#  geom_vline(xintercept=0, color="blue",alpha=0.5)
+```
+
