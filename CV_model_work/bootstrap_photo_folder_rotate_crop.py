@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------- #
 # Date: 06/07/17; modified 06/09/17
-# Author: Richard Lu
+# Authors: Richard Lu and Michael Fermanian
 # Description:
 #   bootstrap a folder up (or down) to set number of photos
 # Runtime: 
